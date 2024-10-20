@@ -1,0 +1,63 @@
+package EJPracts;
+import java.io.*;
+import javax.servlet.*;
+import javax.servlet.http.*;
+public class DownloadServ extends HttpServlet {
+ protected void doGet(HttpServletRequest request, HttpServletResponse response)
+ throws ServletException, IOException {
+ response.setContentType("APPLICATION/OCTET-STREAM");
+ String filename= request.getParameter("filename");
+ 
+ if (filename == null || filename.isEmpty())
+ { response.sendError(HttpServletResponse.SC_BAD_REQUEST,"Filename parameter is 
+missing.");
+ return;
+ }
+ File file =new File(getServletContext().getRealPath("/")+"uploads",filename);
+ if(1file.exists()){
+ response.sendError(HttpServletResponse.SC_NOT_FOUND,"File not Found");
+ return;
+ }
+ response.setHeader("Content-disposition", "attachment; filename=\"" +filename +"\"");
+ try (ServletOutputStream out = response.getOutputStream()) {
+ byte[] buffer = new byte[1024];
+ int bytesRead;
+ while ((bytesRead = is.read(buffer))!=-1)
+ { out.write(buffer , 0, bytesRead);
+ }
+ }
+ }
+}
+
+package EJPracts;
+import java.io.*;
+import javax.servlet.*;
+import javax.servlet.annotation.MultipartConfig;
+import javax.servlet.http.*;
+@MultipartConfig
+public class FileUploadServ extends HttpServlet {
+ protected void doPost(HttpServletRequest req, HttpServletResponse res)
+ throws ServletException, IOException{
+res.setContentType("text/html");
+ PrintWriter out = res.getWriter();
+ String path = req.getParameter("destination");
+ Part filePart = req.getPart("file");
+ String filename = filePart.getSubmittedFileName();
+ out.println("<html><body>");
+ out.println("<br><br><hr> File name: "+filename);
+ try (
+ InputStream is=filePart.getInputStream();
+ OutputStream os= new FileOutputStream(new File(path + File.separator+filename)))
+ {
+ byte[] buffer = new byte[1024];
+ int bytesRead;
+ while ((bytesRead = is.read(buffer))!=-1)
+ { os.write(buffer , 0, bytesRead);
+ }
+ out.println("<br>File uploaded successfully....!!");
+ }
+ catch (FileNotFoundException e){
+ out.println("<br>Error: "+e.getMessage());
+ } out.println("</body></html>");
+ }
+ }
